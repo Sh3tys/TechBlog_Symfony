@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %} {% block title %}Mon profil - TechBlog{% endblock
+%} {% block body %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-4">Profil</h1>
+
+        <div class="card shadow p-3 mb-4">
+            <table class="table table-borderless mb-3">
+                <tr>
+                    <th>Pseudo :</th>
+                    <td>{{ utilisateur.pseudo }}</td>
+                </tr>
+                <tr>
+                    <th>Email :</th>
+                    <td>{{ utilisateur.email }}</td>
+                </tr>
+                <tr>
+                    <th>Membre depuis :</th>
+                    <td>{{ utilisateur.dateInscription|date('d/m/Y') }}</td>
+                </tr>
+                <tr>
+                    <th>Rôle :</th>
+                    <td>
+                        {% if is_granted('ROLE_ADMIN') %} Administrateur {% else
+                        %} Utilisateur {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_profil_edit') }}" class="btn btn-primary"
+                    >Modifier</a
+                >
+                <a
+                    href="{{ path('app_profil_change_password') }}"
+                    class="btn btn-warning"
+                    >Mot de passe</a
+                >
+            </div>
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') %}
+        <div class="card shadow p-3 mb-4">
+            <p>
+                Articles publiés :
+                <strong>{{ utilisateur.articles | length }}</strong>
+            </p>
+            <a
+                href="{{ path('app_admin_articles') }}"
+                class="btn btn-outline-primary"
+                >Gérer articles</a
+            >
+        </div>
+        {% endif %}
+
+        <div class="card shadow p-3 border-danger">
+            <button
+                type="button"
+                class="btn btn-danger"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal"
+            >
+                Supprimer mon compte
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmer</h5>
+                <button
+                    type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"
+                ></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Cette action est <strong>irréversible</strong>. Votre compte
+                    sera supprimé.
+                </p>
+                <p>
+                    Pseudo : <strong>{{ utilisateur.pseudo }}</strong>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Annuler
+                </button>
+                <form method="post" action="{{ path('app_profil_delete') }}">
+                    <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token('delete_account') }}"
+                    />
+                    <button type="submit" class="btn btn-danger">
+                        Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

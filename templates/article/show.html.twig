@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %} {% block title %}{{ article.titre }} - TechBlog{%
+endblock %} {% block body %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-3">{{ article.titre }}</h1>
+        <div class="text-muted mb-4">
+            <small
+                >Par <strong>{{ article.auteur.pseudo }}</strong> •
+                {{ article.dateCreation|date('d/m/Y') }}</small
+            >
+        </div>
+        <hr />
+        <div class="article-content">
+            {{ article.contenu | nl2br }}
+        </div>
+        <hr class="my-4" />
+        {% if is_granted('ROLE_ADMIN') %}
+        <div class="d-flex gap-2 mb-4">
+            <a
+                href="{{ path('app_article_edit', { id: article.id }) }}"
+                class="btn btn-warning"
+                >✏️ Modifier</a
+            >
+            <form
+                method="post"
+                action="{{ path('app_article_delete', { id: article.id }) }}"
+                onsubmit="return confirm('Supprimer ?');"
+            >
+                <input
+                    type="hidden"
+                    name="_token"
+                    value="{{ csrf_token('delete' ~ article.id) }}"
+                />
+                <button class="btn btn-danger">Supprimer</button>
+            </form>
+        </div>
+        {% endif %}
+        <a href="{{ path('app_article_index') }}" class="btn btn-secondary"
+            >← Retour</a
+        >
+    </div>
+</div>
+{% endblock %}

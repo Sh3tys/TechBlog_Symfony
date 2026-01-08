@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %} {% block title %}Nouvel article - TechBlog{%
+endblock %} {% block body %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-4">Créer un article</h1>
+
+        <div class="card shadow p-3">
+            {{ form_start(form) }}
+            {{ form_row(form.titre) }}
+            {{ form_row(form.contenu) }}
+            {{ form_row(form.publie) }}
+            <div class="d-flex justify-content-between">
+                <a
+                    href="{{ path('app_article_index') }}"
+                    class="btn btn-secondary"
+                    >Annuler</a
+                >
+                <button type="submit" class="btn btn-primary">
+                    Enregistrer
+                </button>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
