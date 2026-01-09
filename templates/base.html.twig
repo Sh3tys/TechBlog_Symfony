@@ -59,13 +59,6 @@
 
                     <ul class="navbar-nav">
                         {% if app.user %}
-                        <li class="nav-item">
-                            <a
-                                class="nav-link"
-                                href="{{ path('app_profil') }}"
-                                >{{ app.user.pseudo }}</a
-                            >
-                        </li>
                         <li>
                             <a
                                 class="nav-link"
@@ -79,7 +72,7 @@
                         <li><hr class="dropdown-divider" /></li>
                         <li>
                             <a
-                                class="dropdown-item"
+                                class="nav-link"
                                 href="{{ path('app_article_new') }}"
                             >
                                 Nouvel article
@@ -87,11 +80,17 @@
                         </li>
                         <li>
                             <a
-                                class="dropdown-item"
+                                class="nav-link"
                                 href="{{ path('app_admin_articles') }}"
                             >
                                 Gérer les articles
                             </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_profil') }}"
+                                >👤{{ app.user.pseudo }}</a
+                            >
                         </li>
                         {% endif %}
 
