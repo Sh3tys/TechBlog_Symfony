@@ -67,9 +67,6 @@
                                 Mes articles
                             </a>
                         </li>
-
-                        {% if is_granted('ROLE_ADMIN') %}
-                        <li><hr class="dropdown-divider" /></li>
                         <li>
                             <a
                                 class="nav-link"
@@ -78,6 +75,9 @@
                                 Nouvel article
                             </a>
                         </li>
+
+                        {% if is_granted('ROLE_ADMIN') %}
+                        <li><hr class="dropdown-divider" /></li>
                         <li>
                             <a
                                 class="nav-link"
@@ -87,13 +87,12 @@
                             </a>
                         </li>
 
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_profil') }}"
                                 >👤{{ app.user.pseudo }}</a
                             >
                         </li>
-                        {% endif %}
-
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_logout') }}"
                                 >Déconnexion</a
@@ -117,14 +116,6 @@
                 </div>
             </div>
         </nav>
-
-        <!-- Flash messages simples -->
-        <div class="container mt-3">
-            {% for label, messages in app.flashes %} {% for message in messages
-            %}
-            <div class="alert alert-{{ label }} py-2">{{ message }}</div>
-            {% endfor %} {% endfor %}
-        </div>
 
         <!-- Contenu principal -->
         <main class="container my-4">{% block body %}{% endblock %}</main>
