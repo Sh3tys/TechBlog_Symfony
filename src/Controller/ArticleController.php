@@ -38,8 +38,10 @@ class ArticleController extends AbstractController
     #[Route('/{id}', name: 'app_article_show', methods: ['GET'])]
     public function show(Article $article): Response
     {
-        // Vérifier que l'article est publié (sauf pour les admins)
-        if (!$article->isPublie() && !$this->isGranted('ROLE_ADMIN')) {
+        // Vérifier que l'article est publié (sauf pour l'auteur et les admins)
+        if (!$article->isPublie() &&
+            !$this->isGranted('ROLE_ADMIN') &&
+            $article->getAuteur() !== $this->getUser()) {
             throw $this->createAccessDeniedException('Cet article n\'est pas encore publié.');
         }
 
@@ -49,10 +51,10 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * Créer un nouvel article (ADMIN uniquement)
+     * Créer un nouvel article (TOUS les utilisateurs connectés)
      */
     #[Route('/nouveau/article', name: 'app_article_new', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_USER')] // ✅ Changé de ROLE_ADMIN à ROLE_USER
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $article = new Article();
@@ -78,12 +80,17 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * Modifier un article existant (ADMIN uniquement)
+     * Modifier un article existant (auteur ou admin uniquement)
      */
     #[Route('/{id}/modifier', name: 'app_article_edit', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_USER')]
     public function edit(Request $request, Article $article, EntityManagerInterface $entityManager): Response
     {
+        // Vérifier que l'utilisateur est l'auteur ou admin
+        if ($article->getAuteur() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas modifier cet article.');
+        }
+
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
@@ -102,12 +109,17 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * Supprimer un article (ADMIN uniquement)
+     * Supprimer un article (auteur ou admin uniquement)
      */
     #[Route('/{id}/supprimer', name: 'app_article_delete', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_USER')]
     public function delete(Request $request, Article $article, EntityManagerInterface $entityManager): Response
     {
+        // Vérifier que l'utilisateur est l'auteur ou admin
+        if ($article->getAuteur() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas supprimer cet article.');
+        }
+
         // Vérification du token CSRF pour la sécurité
         if ($this->isCsrfTokenValid('delete'.$article->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($article);
@@ -116,7 +128,30 @@ class ArticleController extends AbstractController
             $this->addFlash('success', 'Article supprimé avec succès !');
         }
 
-        return $this->redirectToRoute('app_admin_articles');
+        // Rediriger vers mes articles ou admin selon le rôle
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('app_admin_articles');
+        }
+
+        return $this->redirectToRoute('app_mes_articles');
+    }
+
+    /**
+     * Mes articles (pour les utilisateurs normaux)
+     */
+    #[Route('/mes/articles', name: 'app_mes_articles', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function mesArticles(ArticleRepository $articleRepository): Response
+    {
+        // Récupérer uniquement les articles de l'utilisateur connecté
+        $articles = $articleRepository->findBy(
+            ['auteur' => $this->getUser()],
+            ['dateCreation' => 'DESC']
+        );
+
+        return $this->render('article/mes_articles.html.twig', [
+            'articles' => $articles,
+        ]);
     }
 
     /**

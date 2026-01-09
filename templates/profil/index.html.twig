@@ -61,6 +61,20 @@
             >
                 Supprimer mon compte
             </button>
+            <div class="card shadow p-3 mb-4">
+                <h5>Mes articles</h5>
+                <p>
+                    Vous avez créé
+                    <strong>{{ utilisateur.articles | length }}</strong>
+                    article(s).
+                </p>
+                <a
+                    href="{{ path('app_mes_articles') }}"
+                    class="btn btn-outline-primary"
+                >
+                    Gérer mes articles
+                </a>
+            </div>
         </div>
     </div>
 </div>
