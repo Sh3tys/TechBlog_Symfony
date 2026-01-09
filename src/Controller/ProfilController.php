@@ -128,4 +128,42 @@ class ProfilController extends AbstractController
         $this->addFlash('error', 'Une erreur est survenue lors de la suppression du compte.');
         return $this->redirectToRoute('app_profil');
     }
+
+    /**
+     * Changer le rôle utilisateur (DEV)
+     */
+    #[Route('/basculer-role', name: 'app_profil_toggle_role', methods: ['POST'])]
+    public function toggleRole(
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response
+    {
+        /** @var Utilisateur $utilisateur */
+        $utilisateur = $this->getUser();
+
+        // Vérification CSRF
+        if ($this->isCsrfTokenValid('toggle_role', $request->request->get('_token'))) {
+            // Rôles actuels
+            $roles = $utilisateur->getRoles();
+
+            // Changement de rôle
+            if (in_array('ROLE_ADMIN', $roles)) {
+                // Passage en utilisateur
+                $utilisateur->setRoles(['ROLE_USER']);
+                $this->addFlash('info', 'Vous êtes maintenant utilisateur.');
+            } else {
+                // Passage en administrateur
+                $utilisateur->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
+                $this->addFlash('success', 'Vous êtes maintenant administrateur.');
+            }
+
+            $entityManager->flush();
+
+            // Rafraîchir la session
+            $this->container->get('security.token_storage')->setToken(null);
+        }
+
+        return $this->redirectToRoute('app_profil');
+    }
+
 }

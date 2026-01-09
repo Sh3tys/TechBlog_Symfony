@@ -1,9 +1,10 @@
-{% extends 'base.html.twig' %} {% block title %}Mon profil - TechBlog{% endblock
-%} {% block body %}
+{% extends 'base.html.twig' %} {% block title %}Profil - TechBlog{% endblock %}
+{% block body %}
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <h1 class="mb-4">Profil</h1>
 
+        {# Informations personnelles #}
         <div class="card shadow p-3 mb-4">
             <table class="table table-borderless mb-3">
                 <tr>
@@ -15,14 +16,17 @@
                     <td>{{ utilisateur.email }}</td>
                 </tr>
                 <tr>
-                    <th>Membre depuis :</th>
+                    <th>Inscription :</th>
                     <td>{{ utilisateur.dateInscription|date('d/m/Y') }}</td>
                 </tr>
                 <tr>
                     <th>Rôle :</th>
                     <td>
-                        {% if is_granted('ROLE_ADMIN') %} Administrateur {% else
-                        %} Utilisateur {% endif %}
+                        {% if is_granted('ROLE_ADMIN') %}
+                        <span class="badge bg-danger">Administrateur</span>
+                        {% else %}
+                        <span class="badge bg-primary">Utilisateur</span>
+                        {% endif %}
                     </td>
                 </tr>
             </table>
@@ -38,53 +42,88 @@
             </div>
         </div>
 
-        {% if is_granted('ROLE_ADMIN') %}
+        {# Mes articles #}
         <div class="card shadow p-3 mb-4">
+            <h5>Mes articles</h5>
             <p>
-                Articles publiés :
+                Nombre d’articles :
                 <strong>{{ utilisateur.articles | length }}</strong>
             </p>
             <a
-                href="{{ path('app_admin_articles') }}"
+                href="{{ path('app_mes_articles') }}"
                 class="btn btn-outline-primary"
-                >Gérer articles</a
             >
+                Gérer mes articles
+            </a>
         </div>
-        {% endif %}
 
-        <div class="card shadow p-3 border-danger">
-            <button
-                type="button"
-                class="btn btn-danger"
-                data-bs-toggle="modal"
-                data-bs-target="#deleteModal"
+        {# Panel admin (si admin) #} {% if is_granted('ROLE_ADMIN') %}
+        <div class="card shadow p-3 mb-4">
+            <h5>Administration</h5>
+            <a
+                href="{{ path('app_admin_articles') }}"
+                class="btn btn-outline-danger"
             >
-                Supprimer mon compte
-            </button>
-            <div class="card shadow p-3 mb-4">
-                <h5>Mes articles</h5>
-                <p>
-                    Vous avez créé
-                    <strong>{{ utilisateur.articles | length }}</strong>
-                    article(s).
+                Gestion des articles
+            </a>
+        </div>
+        {% endif %} {# Mode développement - Bascule de rôle #}
+        <div class="card shadow mb-4 border-warning">
+            <div class="card-body">
+                <h4 class="card-title text-warning">Mode développement</h4>
+                <p class="text-muted mb-3">
+                    Permet de changer le rôle de l’utilisateur.
                 </p>
-                <a
-                    href="{{ path('app_mes_articles') }}"
-                    class="btn btn-outline-primary"
+
+                <form
+                    method="post"
+                    action="{{ path('app_profil_toggle_role') }}"
                 >
-                    Gérer mes articles
-                </a>
+                    <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token('toggle_role') }}"
+                    />
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <button type="submit" class="btn btn-warning">
+                        Passer en utilisateur
+                    </button>
+                    <span class="badge bg-danger ms-2">ADMIN</span>
+                    {% else %}
+                    <button type="submit" class="btn btn-success">
+                        Passer en administrateur
+                    </button>
+                    <span class="badge bg-primary ms-2">USER</span>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        {# Zone de danger - Suppression de compte #}
+        <div class="card shadow border-danger">
+            <div class="card-body">
+                <h4 class="card-title text-danger">Suppression du compte</h4>
+                <p class="text-muted">Cette action est définitive.</p>
+                <button
+                    type="button"
+                    class="btn btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal"
+                >
+                    Supprimer le compte
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal suppression -->
+{# Modal de confirmation de suppression #}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Confirmer</h5>
+                <h5 class="modal-title">Confirmation</h5>
                 <button
                     type="button"
                     class="btn-close btn-close-white"
@@ -92,11 +131,9 @@
                 ></button>
             </div>
             <div class="modal-body">
-                <p>
-                    Cette action est <strong>irréversible</strong>. Votre compte
-                    sera supprimé.
-                </p>
-                <p>
+                <p><strong>Confirmer la suppression du compte ?</strong></p>
+                <p>Cette action ne peut pas être annulée.</p>
+                <p class="text-muted">
                     Pseudo : <strong>{{ utilisateur.pseudo }}</strong>
                 </p>
             </div>
@@ -115,7 +152,7 @@
                         value="{{ csrf_token('delete_account') }}"
                     />
                     <button type="submit" class="btn btn-danger">
-                        Supprimer définitivement
+                        Supprimer
                     </button>
                 </form>
             </div>
